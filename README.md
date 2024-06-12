@@ -1,24 +1,39 @@
-# README
+1)  Rails APP
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+    rails new dockerable --api -d postgresql
+    rails db:create
+    rails generate scaffold Post title:string body:text
+    rails db:migrate
+    rails db:seed
 
-Things you may want to cover:
+2)  GIT
 
-* Ruby version
+    cd /path/to/your/rails_project
+    git init   
+    git remote add origin git@github.com:OleksandrPoltavets/dockerable.git
+    git add .
+    git commit -m "Initial commit"
+    git branch -M main
+    git push -u origin main
 
-* System dependencies
+3)  HTTP
 
-* Configuration
+    curl http://localhost:3000/posts
+    curl -X POST -H "Content-Type: application/json" -d '{"post": {"title": "New Post", "body": "This is the body of the new post."}}' http://localhost:3000/posts
 
-* Database creation
+4) Dockerfile
 
-* Database initialization
+   see docker-compose.yml file withing this gist
 
-* How to run the test suite
+5) ENV file
 
-* Services (job queues, cache servers, search engines, etc.)
+   see .ENV file withing this gist
 
-* Deployment instructions
+6) Docker build & run (development)
 
-* ...
+   docker-compose build
+   docker-compose up / docker-compose up -d
+   docker-compose exec web rails console
+    
+
+    
