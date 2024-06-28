@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # Set this to your main branch
+      - main  # Change to your main branch name if different
 
 jobs:
   deploy:
@@ -18,15 +18,24 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          echo "Host ec2-instance" >> ~/.ssh/config
+          echo "  HostName ${{ secrets.EC2_HOST }}" >> ~/.ssh/config
+          echo "  User ${{ secrets.EC2_USER }}" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 
-      - name: Copy repository to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/dockerable
+      - name: Archive the repository contents
+        run: tar -czf repo.tar.gz .
+
+      - name: Copy archive to EC2
+        run: scp -o StrictHostKeyChecking=no repo.tar.gz ec2-instance:/home/ubuntu/dockerable.tar.gz
 
       - name: Deploy on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ubuntu/dockerable
+          ssh ec2-instance << 'EOF'
+            cd /home/ubuntu
+            tar -xzf dockerable.tar.gz -C dockerable
+            cd dockerable
             docker-compose down
             docker-compose build
             docker-compose up -d
