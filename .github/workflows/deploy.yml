@@ -25,16 +25,20 @@ jobs:
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 
       - name: Archive the repository contents
-        run: tar -czf repo.tar.gz .
+        run: |
+          mkdir -p /tmp/repo
+          cp -r . /tmp/repo
+          tar -czf /tmp/repo.tar.gz -C /tmp repo
 
       - name: Copy archive to EC2
-        run: scp -o StrictHostKeyChecking=no repo.tar.gz ec2-instance:/home/ubuntu/dockerable.tar.gz
+        run: scp -o StrictHostKeyChecking=no /tmp/repo.tar.gz ec2-instance:/home/ubuntu/dockerable.tar.gz
 
       - name: Deploy on EC2
         run: |
           ssh ec2-instance << 'EOF'
             cd /home/ubuntu
-            tar -xzf dockerable.tar.gz -C dockerable
+            mkdir -p dockerable
+            tar -xzf dockerable.tar.gz -C dockerable --strip-components=1
             cd dockerable
             docker-compose down
             docker-compose build
